@@ -158,7 +158,7 @@ function draw(){
     currentFilter === "ALL" || p.tipo === currentFilter
   );
 
-  filtered.forEach(p = {
+  filtered.forEach(p => {
 
     const marker = L.marker([Number(p.lat), Number(p.lng)]).addTo(map);
 
