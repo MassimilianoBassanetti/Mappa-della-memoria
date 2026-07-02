@@ -1,15 +1,17 @@
 [
   {
-  "nome": "Castello di Rivalta",
-  "lat": 44.7,
-  "lng": 9.6,
-  "tipo": "Castelli",
-  "storia": "Castello medievale...",
-  "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
+    "nome": "Castello di Rivalta",
+    "lat": 44.7,
+    "lng": 9.6,
+    "tipo": "Castelli",
+    "storia": "Castello medievale...",
+    "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
 
-  "luoghi": [
-    { "nome": "Castello principale", "lat": 44.7, "lng": 9.6 },
-    { "nome": "Borgo antico", "lat": 44.705, "lng": 9.605 },
-    { "nome": "Punto panoramico", "lat": 44.71, "lng": 9.62 }
+    "luoghi": [
+      { "nome": "Castello principale", "lat": 44.7, "lng": 9.6 },
+      { "nome": "Borgo antico", "lat": 44.705, "lng": 9.605 },
+      { "nome": "Punto panoramico", "lat": 44.71, "lng": 9.62 }
+    ]
   }
 ]
+
