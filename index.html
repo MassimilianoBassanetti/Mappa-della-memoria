@@ -157,35 +157,29 @@ function filter(t){
   render();
   draw();
 }
+
+/* RENDER LIST */
 function renderList(list){
 
   const container = document.getElementById("results");
 
-  container.innerHTML = list.map(p => `
-    <div class="item" data-id="${p.lat}_${p.lng}">
-      <b>${p.nome}</b><br>
-      <small>${p.tipo || ""}</small>
-    </div>
-  `).join("");
+  container.innerHTML = "";
 
-  // EVENT LISTENER PULITO (NO INLINE ONCLICK)
-  container.querySelectorAll(".item").forEach(el => {
+  list.forEach(p => {
 
-    el.addEventListener("click", () => {
+    const div = document.createElement("div");
+    div.className = "item";
 
-      const id = el.dataset.id;
+    div.innerHTML = `<b>${p.nome}</b><br><small>${p.tipo || ""}</small>`;
 
-      const p = data.find(x =>
-        `${x.lat}_${x.lng}` === id
-      );
-
-      if (p) open(p);
+    div.addEventListener("click", () => {
+      map.setView([p.lat, p.lng], 13);
+      open(p);
     });
 
+    container.appendChild(div);
   });
 }
-/* RENDER LIST */
-
 /* SEARCH */
 document.getElementById("search").addEventListener("input", e => {
 
@@ -195,14 +189,27 @@ document.getElementById("search").addEventListener("input", e => {
     p.nome.toLowerCase().includes(v)
   );
 
-  // aggiorna SOLO lista
-  document.getElementById("results").innerHTML =
-    filtered.map(p => `
-      <div class="item" onclick="open(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-        <b>${p.nome}</b><br>
-        <small>${p.tipo || ""}</small>
-      </div>
-    `).join("");
+  const container = document.getElementById("results");
+
+  container.innerHTML = "";
+
+  filtered.forEach(p => {
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <b>${p.nome}</b><br>
+      <small>${p.tipo || ""}</small>
+    `;
+
+    div.addEventListener("click", () => {
+      map.setView([p.lat, p.lng], 13);
+      open(p);
+    });
+
+    container.appendChild(div);
+  });
 
 });
 function open(p){
