@@ -63,7 +63,7 @@ body { margin:0; font-family:Arial; overflow:hidden; }
 }
 
 #content {
-  padding:12px;
+  padding:12px;wz
   overflow-y:auto;
   flex:1;
 }
@@ -146,7 +146,7 @@ img {
 <script>
 
 const map = L.map('map').setView([44.6,9.7],10);
-
+map.zoomControl.setPosition('bottomright');
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   attribution:'© OpenStreetMap'
 }).addTo(map);
