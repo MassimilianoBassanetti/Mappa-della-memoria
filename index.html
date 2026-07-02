@@ -230,20 +230,7 @@ document.addEventListener("click",e=>{
     document.getElementById("sidebar").classList.remove("open");
   }
 });
-function renderRoutePanel(route){
 
-  const panel = document.getElementById("routePanel");
-
-  panel.innerHTML = `
-    <b>🧭 Percorso</b>
-    <hr>
-    ${route.instructions.map(i=>`
-      <div style="margin-bottom:6px;">
-        ➜ ${itText(i.text)}
-      </div>
-    `).join("")}
-  `;
-}
 // ROUTING
 function route(lat,lng){
 
