@@ -131,7 +131,7 @@ let markers = [];
 let currentFilter = "ALL";
 
 /* LOAD */
-document.getElementById("results").innerHTML="";  
+
 fetch("./data/punti.json")
   .then(r => {
     console.log("STATUS FILE:", r.status);
@@ -147,7 +147,7 @@ fetch("./data/punti.json")
   .catch(err => {
     console.error("ERRORE CARICAMENTO JSON:", err);
   });
-
+document.getElementById("results").innerHTML = "";
 /* DRAW */
 function draw(){
 
