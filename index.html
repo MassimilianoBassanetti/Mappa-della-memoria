@@ -190,11 +190,13 @@ document.getElementById("search").addEventListener("input", e => {
   const filtered = data.filter(p =>
     p.nome.toLowerCase().includes(v)
   );
-  renderList(filtered);
+
+  // aggiorna SOLO lista
   document.getElementById("results").innerHTML =
     filtered.map(p => `
-      <div class="item" onclick="go(${p.lat},${p.lng})">
-        <b>${p.nome}</b>
+      <div class="item" onclick="open(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+        <b>${p.nome}</b><br>
+        <small>${p.tipo || ""}</small>
       </div>
     `).join("");
 
