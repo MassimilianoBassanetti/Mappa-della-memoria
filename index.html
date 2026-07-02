@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mappa Storica</title>
 
@@ -9,133 +9,116 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-* {
-  box-sizing: border-box;
+html, body {
+  height: 100%;
+  margin: 0;
   font-family: system-ui, Arial;
 }
-.leaflet-top.leaflet-left {
-  z-index: 400 | important;
-}
-body {
-  margin: 0;
-  overflow: hidden;
-  height: 100%;
-}
 
-/* MAPPA FULL BACKGROUND */
+/* MAPPA */
 #map {
   position: absolute;
-  inset: 0;
-  height: 100%;
-  width: 100%;
+  top: 0;
+  left: 320px;
+  right: 0;
+  bottom: 0;
 }
+
+/* PANNELLO SINISTRO */
 #panel {
-  z-index: 1000;
-  top: 20px;
-  left: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 320px;
+  height: 100%;
   background: white;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  
-  position: absolute;
 }
 
-#sidebar {
-  z-index: 1200;
-  position: absolute;
-}
-/* 🎯 PANNELLO FLOATING CARD (NUOVO LOOK) */
-#panel {
-  position: absolute;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-50%);
-  width: 320px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  overflow: hidden;
-  z-index: 1000;
-}
-
-/* SEARCH MODERNO */
+/* SEARCH */
 #search {
-  width: 100%;
   padding: 12px;
   border: none;
+  border-bottom: 1px solid #ddd;
   outline: none;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-  display: block;
 }
 
-/* LISTA MODERNA */
+/* CATEGORIE */
+#cats {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cat {
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* LISTA */
 #list {
-  max-height: 420px;
-  overflow-y: auto;
+  overflow: auto;
+  flex: 1;
 }
 
 .item {
-  padding: 12px;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f2;
-  transition: 0.15s;
 }
 
 .item:hover {
-  background: #f5f7fa;
+  background: #f5f5f5;
 }
 
 /* SIDEBAR DETTAGLIO */
 #sidebar {
   position: absolute;
-  top: 50%;
-  right: -380px;
-  transform: translateY(-50%);
+  top: 0;
+  right: -360px;
   width: 340px;
-  max-height: 80vh;
+  height: 100%;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  transition: 0.25s;
+  border-left: 1px solid #ddd;
+  transition: 0.2s;
   overflow: auto;
-  z-index: 1000;
 }
 
 #sidebar.open {
-  right: 20px;
+  right: 0;
 }
-#cats {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 8px;
 
-  max-height: none;
-  overflow: visible;
-}
-  
 #content {
-  padding: 16px;
+  padding: 12px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="map"></div>
-
-<!-- 🎯 FLOATING PANEL -->
 <div id="panel">
+
   <input id="search" placeholder="🔍 Cerca luogo...">
+
+  <div id="cats">
+    <button class="cat" onclick="filter('ALL')">Tutti</button>
+    <button class="cat" onclick="filter('Castelli')">🏰 Castelli</button>
+    <button class="cat" onclick="filter('Paesi')">🏘️ Paesi</button>
+    <button class="cat" onclick="filter('Natura')">🌄 Natura</button>
+  </div>
+
   <div id="list"></div>
+
 </div>
 
-<!-- 🎯 SIDEBAR -->
+<div id="map"></div>
+
 <div id="sidebar">
   <div id="content">Seleziona un punto</div>
 </div>
@@ -144,23 +127,30 @@ body {
 
 const map = L.map('map').setView([44.6, 9.7], 10);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
 }).addTo(map);
 
 let data = [];
 let markers = [];
+let currentFilter = "ALL";
 
-/* LOAD */
+/* LOAD DATA */
 fetch("./data/punti.json")
-.then(r => r.json())
+.then(r => {
+  if(!r.ok) throw new Error("JSON non trovato");
+  return r.json();
+})
 .then(d => {
   data = d;
   renderList();
   draw();
+})
+.catch(e => {
+  console.error(e);
 });
 
-/* DRAW */
+/* DRAW MARKERS */
 function draw(){
 
   markers.forEach(m => map.removeLayer(m));
@@ -168,23 +158,53 @@ function draw(){
 
   data.forEach(p => {
 
+    if(currentFilter !== "ALL" && p.tipo !== currentFilter) return;
+
     const m = L.marker([p.lat, p.lng]).addTo(map);
+
     m.on("click", () => open(p));
 
     markers.push(m);
   });
 }
 
-/* LIST */
+/* FILTER */
+function filter(t){
+  currentFilter = t;
+  renderList();
+  draw();
+}
+
+/* LISTA */
 function renderList(list = data){
 
+  const filtered = list.filter(p =>
+    currentFilter === "ALL" || p.tipo === currentFilter
+  );
+
   document.getElementById("list").innerHTML =
-  list.map(p => `
-    <div class="item" onclick="go(${p.lat},${p.lng})">
-      <b>${p.nome}</b><br>
-      <small>${p.tipo || ""}</small>
-    </div>
-  `).join("");
+    filtered.map(p => `
+      <div class="item" onclick="go(${p.lat},${p.lng})">
+        <b>${p.nome}</b><br>
+        <small>${p.tipo || ""}</small>
+      </div>
+    `).join("");
+}
+
+/* CLICK LISTA */
+function go(lat,lng){
+  map.setView([lat,lng], 13);
+}
+
+/* SIDEBAR */
+function open(p){
+
+  document.getElementById("sidebar").classList.add("open");
+
+  document.getElementById("content").innerHTML = `
+    <h2>${p.nome}</h2>
+    <p>${p.storia || ""}</p>
+  `;
 }
 
 /* SEARCH */
@@ -196,24 +216,14 @@ document.getElementById("search").addEventListener("input", e => {
     p.nome.toLowerCase().includes(v)
   );
 
-  renderList(filtered);
+  document.getElementById("list").innerHTML =
+    filtered.map(p => `
+      <div class="item" onclick="go(${p.lat},${p.lng})">
+        <b>${p.nome}</b>
+      </div>
+    `).join("");
+
 });
-
-/* GO */
-function go(lat,lng){
-  map.setView([lat,lng], 13);
-}
-
-/* OPEN */
-function open(p){
-
-  document.getElementById("sidebar").classList.add("open");
-
-  document.getElementById("content").innerHTML = `
-    <h2>${p.nome}</h2>
-    <p>${p.storia || ""}</p>
-  `;
-}
 
 </script>
 
