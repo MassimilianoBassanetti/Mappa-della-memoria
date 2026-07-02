@@ -117,12 +117,20 @@ let currentFilter = "ALL";
 
 /* LOAD */
 fetch("./data/punti.json")
-.then(r => r.json())
-.then(d => {
-  data = d;
-  render();
-  draw();
-});
+  .then(r => {
+    console.log("STATUS FILE:", r.status);
+    return r.json();
+  })
+  .then(d => {
+    console.log("DATA CARICATA:", d);
+
+    data = d;
+    render();
+    draw();
+  })
+  .catch(err => {
+    console.error("ERRORE CARICAMENTO JSON:", err);
+  });
 
 /* DRAW */
 function draw(){
