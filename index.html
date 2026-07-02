@@ -16,28 +16,73 @@
 <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <style>
-body { margin:0; font-family:Arial; overflow:hidden; }
-#map { height:100vh; width:100vw; }
+* { box-sizing: border-box; }
 
+body {
+  margin:0;
+  font-family: Arial;
+  overflow:hidden;
+}
 
-/* FILTERS */
-#filters {
+/* MAP */
+#map {
+  height:100vh;
+  width:100vw;
+}
+
+/* TOP SEARCH BAR */
+#topbar {
   position:absolute;
   top:10px;
-  left:10px;
-  background:#fff;
-  padding:10px;
-  border-radius:14px;
-  z-index:99999 | important;
-  width:200px;
-
-  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10000;
+  width:90%;
+  max-width:420px;
 }
 
 #search {
   width:100%;
-  padding:6px;
-  margin-bottom:6px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  box-shadow:0 2px 10px rgba(0,0,0,0.15);
+  outline:none;
+  font-size:14px;
+}
+
+#suggestions {
+  background:white;
+  border-radius:10px;
+  margin-top:5px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.15);
+}
+
+/* CHIPS FILTER */
+#chips {
+  position:absolute;
+  top:65px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10000;
+  display:flex;
+  gap:8px;
+}
+
+.chip {
+  background:white;
+  border:1px solid #ddd;
+  padding:6px 10px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.chip.active {
+  background:#2c7be5;
+  color:white;
+  border-color:#2c7be5;
 }
 
 /* SIDEBAR */
@@ -55,7 +100,9 @@ body { margin:0; font-family:Arial; overflow:hidden; }
   flex-direction:column;
 }
 
-#sidebar.open { right:0; }
+#sidebar.open {
+  right:0;
+}
 
 #header {
   padding:12px;
@@ -65,7 +112,7 @@ body { margin:0; font-family:Arial; overflow:hidden; }
 }
 
 #content {
-  padding:12px;wz
+  padding:12px;
   overflow-y:auto;
   flex:1;
 }
@@ -81,7 +128,7 @@ h3 {
   display:inline-block;
   padding:4px 6px;
   border-radius:4px;
-  color:#fff;
+  color:white;
   font-size:12px;
 }
 
@@ -113,9 +160,12 @@ img {
     bottom:-50%;
     top:auto;
     right:0;
-    border-radius:15px 15px 0 0;
+    border-radius:16px 16px 0 0;
   }
-  #sidebar.open { bottom:0; }
+
+  #sidebar.open {
+    bottom:0;
+  }
 }
 </style>
 </head>
@@ -124,16 +174,17 @@ img {
 
 <div id="map"></div>
 
-<!-- FILTRI -->
-<div id="filters">
-  <input id="search" placeholder="🔍 cerca luogo...">
+<!-- SEARCH -->
+<div id="topbar">
+  <input id="search" placeholder="🔍 Cerca luoghi storici..." />
   <div id="suggestions"></div>
+</div>
 
-  <hr>
-
-  <label><input type="checkbox" checked id="f1"> 🏰 Castelli</label><br>
-  <label><input type="checkbox" checked id="f2"> 🏘️ Paesi</label><br>
-  <label><input type="checkbox" checked id="f3"> 🌄 Natura</label>
+<!-- CHIPS -->
+<div id="chips">
+  <div class="chip active" data-type="Castelli">🏰 Castelli</div>
+  <div class="chip active" data-type="Paesi">🏘️ Paesi</div>
+  <div class="chip active" data-type="Natura">🌄 Natura</div>
 </div>
 
 <!-- SIDEBAR -->
@@ -148,10 +199,12 @@ img {
 <script>
 
 const map = L.map('map').setView([44.6,9.7],10);
-map.zoomControl.setPosition('bottomright');
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   attribution:'© OpenStreetMap'
 }).addTo(map);
+
+L.control.zoom({ position:'bottomright' }).addTo(map);
 
 // cluster
 const cluster = L.markerClusterGroup();
@@ -159,8 +212,9 @@ map.addLayer(cluster);
 
 let punti = [];
 let routeControl = null;
+let activeTypes = new Set(["Castelli","Paesi","Natura"]);
 
-// colore
+// colori
 function color(t){
   return t==="Castelli"?"darkred":
          t==="Paesi"?"darkblue":
@@ -187,9 +241,15 @@ fetch("./data/punti.json")
   draw();
 });
 
-// draw markers
+// draw
 function draw(){
+
+  cluster.clearLayers();
+
   punti.forEach(p=>{
+
+    if(!activeTypes.has(p.tipo)) return;
+
     const icon=L.divIcon({
       html:`<div style="
         background:${color(p.tipo)};
@@ -217,10 +277,10 @@ function open(p){
     .sort((a,b)=>a.d-b.d)
     .slice(0,5);
 
-  let gallery = "";
+  let gallery="";
 
   if(p.img && p.img.length){
-    gallery = `
+    gallery=`
       <img id="mainImg" src="${p.img[0]}">
       <div class="gallery">
         ${p.img.map(i=>`
@@ -250,7 +310,7 @@ function open(p){
 
     <h3>📍 Vicini</h3>
     ${vicini.map(v=>`
-      <div style="cursor:pointer;padding:5px;border-bottom:1px solid #eee"
+      <div style="padding:5px;border-bottom:1px solid #eee;cursor:pointer"
       onclick='open(${JSON.stringify(v)})'>
         <b>${v.nome}</b><br>
         <small>${v.d.toFixed(1)} km</small>
@@ -286,11 +346,25 @@ document.getElementById("search").addEventListener("input",e=>{
     .filter(p=>p.nome.toLowerCase().includes(v))
     .slice(0,5)
     .map(p=>`
-      <div style="padding:5px;cursor:pointer"
-      onclick="map.setView([${p.lat},${p.lng}],13)">
+      <div style="padding:8px;cursor:pointer;border-bottom:1px solid #eee"
+      onclick="map.setView([${p.lat},${p.lng}],13);document.getElementById('suggestions').innerHTML=''">
         ${p.nome}
       </div>
     `).join("");
+});
+
+// chips filter
+document.querySelectorAll(".chip").forEach(c=>{
+  c.addEventListener("click",()=>{
+    c.classList.toggle("active");
+
+    activeTypes = new Set(
+      [...document.querySelectorAll(".chip.active")]
+      .map(x=>x.dataset.type)
+    );
+
+    draw();
+  });
 });
 
 </script>
