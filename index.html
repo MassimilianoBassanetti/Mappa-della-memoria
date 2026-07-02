@@ -123,7 +123,12 @@ html, body {
 <script>
 
 const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
+const sidebar = document.getElementById("sidebar");
+const mapEl = document.getElementById("map");
 
+mapEl.addEventListener("click", () => {
+  sidebar.classList.remove("open");
+});
 setTimeout(() => {
   map.invalidateSize();
 }, 100);
