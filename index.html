@@ -11,7 +11,7 @@
 <style>
 html, body {
   margin: 0;
-  height: 100%;
+  height: 100%;e
   font-family: system-ui;
 }
 
@@ -185,20 +185,6 @@ function renderList(list){
   });
 }
 /* RENDER LIST */
-function render(list = data){
-
-  const filtered = list.filter(p =>
-    currentFilter === "ALL" || p.tipo === currentFilter
-  );
-
-  document.getElementById("results").innerHTML =
-    filtered.map(p => `
-      <div class="item" onclick="go(${p.lat},${p.lng})">
-        <b>${p.nome}</b><br>
-        <small>${p.tipo || ""}</small>
-      </div>
-    `).join("");
-}
 
 /* SEARCH */
 document.getElementById("search").addEventListener("input", e => {
