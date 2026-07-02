@@ -15,109 +15,112 @@ html, body {
   font-family: system-ui, Arial;
 }
 
-/* LAYOUT A DUE COLONNE SEMPLICE */
-#panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 320px;
-  height: 100%;
-  background: #fff;
-  border-right: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-}
-
 /* MAPPA */
 #map {
-  position: fixed;
-  top: 0;
-  left: 320px;
-  right: 0;
-  bottom: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
-/* SEARCH */
+/* CONTAINER UI TOP */
+#topbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* SEARCH CENTRATA */
 #search {
-  padding: 12px;
+  width: 360px;
+  max-width: 90vw;
+
+  padding: 12px 14px;
+  border-radius: 999px;
+
   border: none;
-  border-bottom: 1px solid #ddd;
   outline: none;
+
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 /* CATEGORIE */
 #cats {
   display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 6px;
-  border-bottom: 1px solid #eee;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .cat {
-  padding: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
   border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 6px;
+  background: white;
   cursor: pointer;
+  font-size: 13px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* LISTA */
-#list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.item:hover {
+.cat:hover {
   background: #f5f5f5;
 }
 
-/* SIDEBAR DETTAGLIO */
+/* SIDEBAR DETTAGLI */
 #sidebar {
-  position: fixed;
-  top: 0;
+  position: absolute;
+  top: 16px;
   right: -380px;
-  width: 360px;
-  height: 100%;
-  background: #fff;
-  border-left: 1px solid #ddd;
-  transition: 0.2s;
+  width: 340px;
+  height: calc(100% - 32px);
+
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+  transition: 0.25s;
+  z-index: 1000;
   overflow: auto;
 }
 
 #sidebar.open {
-  right: 0;
+  right: 16px;
 }
 
 #content {
-  padding: 12px;
+  padding: 14px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="panel">
+<div id="map"></div>
+
+<!-- TOP UI -->
+<div id="topbar">
+
   <input id="search" placeholder="🔍 Cerca luogo...">
 
   <div id="cats">
-    <button onclick="filter('ALL')">Tutti</button>
-    <button onclick="filter('Castelli')">🏰 Castelli</button>
-    <button onclick="filter('Paesi')">🏘️ Paesi</button>
-    <button onclick="filter('Natura')">🌄 Natura</button>
+    <button class="cat" onclick="filter('ALL')">Tutti</button>
+    <button class="cat" onclick="filter('Castelli')">🏰 Castelli</button>
+    <button class="cat" onclick="filter('Paesi')">🏘️ Paesi</button>
+    <button class="cat" onclick="filter('Natura')">🌄 Natura</button>
+    <button class="cat" onclick="filter('Storia')">📜 Storia</button>
   </div>
 
-  <div id="list"></div>
 </div>
 
-<div id="map"></div>
-
+<!-- SIDEBAR -->
 <div id="sidebar">
   <div id="content">Seleziona un punto</div>
 </div>
@@ -134,7 +137,7 @@ let data = [];
 let markers = [];
 let currentFilter = "ALL";
 
-/* LOAD JSON */
+/* LOAD */
 fetch("./data/punti.json")
 .then(r => r.json())
 .then(d => {
@@ -143,12 +146,13 @@ fetch("./data/punti.json")
   draw();
 });
 
-/* DRAW MARKERS */
+/* DRAW */
 function draw(){
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
   data.forEach(p => {
+
     if(currentFilter !== "ALL" && p.tipo !== currentFilter) return;
 
     const m = L.marker([p.lat, p.lng]).addTo(map);
@@ -165,20 +169,14 @@ function filter(t){
   draw();
 }
 
-/* LIST */
-function render(){
+/* LIST (non visibile ma utile per search) */
+function render(list = data){
 
-  const filtered = data.filter(p =>
+  const filtered = list.filter(p =>
     currentFilter === "ALL" || p.tipo === currentFilter
   );
 
-  document.getElementById("list").innerHTML =
-    filtered.map(p => `
-      <div class="item" onclick="go(${p.lat},${p.lng})">
-        <b>${p.nome}</b><br>
-        <small>${p.tipo || ""}</small>
-      </div>
-    `).join("");
+  // (non usiamo lista visibile, solo filtro logico)
 }
 
 /* SEARCH */
@@ -190,26 +188,25 @@ document.getElementById("search").addEventListener("input", e => {
     p.nome.toLowerCase().includes(v)
   );
 
-  document.getElementById("list").innerHTML =
-    filtered.map(p => `
-      <div class="item" onclick="go(${p.lat},${p.lng})">
-        <b>${p.nome}</b>
-      </div>
-    `).join("");
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  filtered.forEach(p => {
+    const m = L.marker([p.lat, p.lng]).addTo(map);
+    m.on("click", () => open(p));
+    markers.push(m);
+  });
+
 });
 
-/* GO TO */
-function go(lat,lng){
-  map.setView([lat,lng], 13);
-}
-
-/* OPEN SIDEBAR */
+/* OPEN */
 function open(p){
   document.getElementById("sidebar").classList.add("open");
 
   document.getElementById("content").innerHTML = `
     <h2>${p.nome}</h2>
     <p>${p.storia || ""}</p>
+    <p><b>Tipo:</b> ${p.tipo || ""}</p>
   `;
 }
 
