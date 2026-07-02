@@ -15,12 +15,12 @@ html, body {
   font-family: system-ui, Arial;
 }
 
-/* SIDEBAR */
+/* LAYOUT A DUE COLONNE SEMPLICE */
 #panel {
   position: fixed;
   top: 0;
   left: 0;
-  width: 340px;
+  width: 320px;
   height: 100%;
   background: #fff;
   border-right: 1px solid #ddd;
@@ -32,7 +32,7 @@ html, body {
 #map {
   position: fixed;
   top: 0;
-  left: 340px;
+  left: 320px;
   right: 0;
   bottom: 0;
 }
@@ -43,14 +43,13 @@ html, body {
   border: none;
   border-bottom: 1px solid #ddd;
   outline: none;
-  font-size: 14px;
 }
 
 /* CATEGORIE */
 #cats {
-  padding: 10px;
   display: flex;
   flex-direction: column;
+  padding: 10px;
   gap: 6px;
   border-bottom: 1px solid #eee;
 }
@@ -58,7 +57,7 @@ html, body {
 .cat {
   padding: 10px;
   border: 1px solid #ddd;
-  background: white;
+  background: #fff;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -79,16 +78,16 @@ html, body {
   background: #f5f5f5;
 }
 
-/* DETTAGLIO */
+/* SIDEBAR DETTAGLIO */
 #sidebar {
   position: fixed;
   top: 0;
   right: -380px;
   width: 360px;
   height: 100%;
-  background: white;
+  background: #fff;
   border-left: 1px solid #ddd;
-  transition: 0.25s;
+  transition: 0.2s;
   overflow: auto;
 }
 
@@ -105,7 +104,6 @@ html, body {
 <body>
 
 <div id="panel">
-
   <input id="search" placeholder="🔍 Cerca luogo...">
 
   <div id="cats">
@@ -116,7 +114,6 @@ html, body {
   </div>
 
   <div id="list"></div>
-
 </div>
 
 <div id="map"></div>
@@ -137,7 +134,7 @@ let data = [];
 let markers = [];
 let currentFilter = "ALL";
 
-/* LOAD DATA */
+/* LOAD JSON */
 fetch("./data/punti.json")
 .then(r => r.json())
 .then(d => {
@@ -169,9 +166,9 @@ function filter(t){
 }
 
 /* LIST */
-function render(list = data){
+function render(){
 
-  const filtered = list.filter(p =>
+  const filtered = data.filter(p =>
     currentFilter === "ALL" || p.tipo === currentFilter
   );
 
@@ -201,14 +198,15 @@ document.getElementById("search").addEventListener("input", e => {
     `).join("");
 });
 
-/* GO */
+/* GO TO */
 function go(lat,lng){
   map.setView([lat,lng], 13);
 }
 
-/* OPEN */
+/* OPEN SIDEBAR */
 function open(p){
   document.getElementById("sidebar").classList.add("open");
+
   document.getElementById("content").innerHTML = `
     <h2>${p.nome}</h2>
     <p>${p.storia || ""}</p>
