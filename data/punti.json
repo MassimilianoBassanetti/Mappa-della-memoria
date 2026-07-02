@@ -14,18 +14,4 @@
     ]
   }
 
-  {
-    "nome": "Rivalta",
-    "lat": 43.7,
-    "lng": 7.6,
-    "tipo": "Paese",
-    "storia": "Castello medievale...",
-    "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
-
-    "luoghi": [
-      { "nome": "Castello principale", "lat": 44.7, "lng": 9.6 },
-      { "nome": "Borgo antico", "lat": 44.705, "lng": 9.605 },
-      { "nome": "Punto panoramico", "lat": 44.71, "lng": 9.62 }
-    ]
-  }
 ]
