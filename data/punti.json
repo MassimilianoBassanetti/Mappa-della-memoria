@@ -1,27 +1,14 @@
-[
-  {
-    "nome": "Castello di Rivalta",
-    "lat": 44.7,
-    "lng": 9.6,
-    "tipo": "Castelli",
-    "storia": "Castello medievale del XII secolo, importante presidio difensivo della valle.",
-    "info": "Struttura visitabile con cortili e torre principale.",
-    "curiosita": "Si parla di passaggi sotterranei segreti.",
-    "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
-    "img": [
-      "https://upload.wikimedia.org/wikipedia/commons/3/3c/Castello_di_Rivalta.jpg",
-      "https://upload.wikimedia.org/wikipedia/commons/5/5b/Castello_di_Rivalta_interno.jpg"
-    ]
-  },
-  {
-    "nome": "Bobbio",
-    "lat": 44.77,
-    "lng": 9.38,
-    "tipo": "Paesi",
-    "storia": "Borgo longobardo famoso per l’abbazia di San Colombano.",
-    "info": "Centro storico medievale molto ben conservato.",
-    "curiosita": "Uno dei borghi più belli d’Italia.",
-    "wiki": "https://it.wikipedia.org/wiki/Bobbio",
-    "img": []
-  }
-]
+{
+  "nome": "Castello di Rivalta",
+  "lat": 44.7,
+  "lng": 9.6,
+  "tipo": "Castelli",
+  "storia": "Castello medievale...",
+  "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
+
+  "luoghi": [
+    { "nome": "Castello principale", "lat": 44.7, "lng": 9.6 },
+    { "nome": "Borgo antico", "lat": 44.705, "lng": 9.605 },
+    { "nome": "Punto panoramico", "lat": 44.71, "lng": 9.62 }
+  ]
+}
