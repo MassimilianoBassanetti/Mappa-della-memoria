@@ -122,7 +122,8 @@ html, body {
 <script>
 
 const map = L.map('map').setView([44.6, 9.7], 10);
-document.getElementById("map").addEventListener("click", ()=> {
+map.getContainer().addEventListener("click", () => {
+  console.log("CLICK MAPPA"); // debug
   document.getElementById("sidebar").classList.remove("open");
 });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
