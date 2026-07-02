@@ -1,17 +1,34 @@
 [
   {
     "nome": "Castello di Rivalta",
-    "lat": 44.7,
-    "lng": 9.6,
+    "lat": 44.717,
+    "lng": 9.617,
     "tipo": "Castelli",
-    "storia": "Castello medievale...",
-    "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)",
-
-    "luoghi": [
-      { "nome": "Castello principale", "lat": 44.7, "lng": 9.6 },
-      { "nome": "Borgo antico", "lat": 44.705, "lng": 9.605 },
-      { "nome": "Punto panoramico", "lat": 44.71, "lng": 9.62 }
-    ]
+    "storia": "Antico castello medievale ben conservato, situato nella Val Trebbia.",
+    "wiki": "https://it.wikipedia.org/wiki/Castello_di_Rivalta_(Gazzola)"
+  },
+  {
+    "nome": "Borgo di Grazzano Visconti",
+    "lat": 44.949,
+    "lng": 9.667,
+    "tipo": "Paesi",
+    "storia": "Borgo in stile neomedievale famoso per le sue atmosfere storiche e turistiche.",
+    "wiki": "https://it.wikipedia.org/wiki/Grazzano_Visconti"
+  },
+  {
+    "nome": "Monte Penice",
+    "lat": 44.773,
+    "lng": 9.331,
+    "tipo": "Natura",
+    "storia": "Montagna dell’Appennino ligure con vista panoramica su Pianura Padana.",
+    "wiki": "https://it.wikipedia.org/wiki/Monte_Penice"
+  },
+  {
+    "nome": "Forte di Bardi",
+    "lat": 44.627,
+    "lng": 9.733,
+    "tipo": "Castelli",
+    "storia": "Grande fortezza medievale costruita su uno sperone roccioso.",
+    "wiki": "https://it.wikipedia.org/wiki/Forte_di_Bardi"
   }
-
 ]
