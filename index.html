@@ -13,7 +13,9 @@
   box-sizing: border-box;
   font-family: system-ui, Arial;
 }
-
+.leaflet-top.leaflet-left {
+  z-index: 400 | important;
+}
 body {
   margin: 0;
   overflow: hidden;
@@ -24,7 +26,15 @@ body {
   position: absolute;
   inset: 0;
 }
+#panel {
+  z-index: 1000;
+  position: absolute;
+}
 
+#sidebar {
+  z-index: 1200;
+  position: absolute;
+}
 /* 🎯 PANNELLO FLOATING CARD (NUOVO LOOK) */
 #panel {
   position: absolute;
