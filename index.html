@@ -194,6 +194,13 @@ function route(lat,lng){
       L.latLng(map.getCenter()),
       L.latLng(lat,lng)
     ],
+    router: L.Routing.osrmv1 ({
+      serviceUrl: 'https://router.project-osrm.org/route/v1',
+      languege :'it'
+    }),
+    lineOptions: {
+      styles: [{ color: '#2c7be5', weight:5 }]},
+    
     addWaypoints:false,
     draggableWaypoints:false
   }).addTo(map);
