@@ -134,18 +134,24 @@ fetch("./data/punti.json")
 
 /* DRAW */
 function draw(){
+
+  // 1. cancella vecchi marker
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
+  // 2. crea nuovi marker
   data.forEach(p => {
-    if(currentFilter !== "ALL" && p.tipo !== currentFilter) return;
 
-    const m = L.marker([p.lat, p.lng]).addTo(map);
-    m.on("click", () => map.setView([p.lat, p.lng], 13));
-    markers.push(m);
+    const marker = L.marker([Number(p.lat), Number(p.lng)]).addTo(map);
+
+    marker.on("click", function () {
+      console.log("CLICK MARKER:", p);
+      open(p);
+    });
+
+    markers.push(marker);
   });
 }
-
 /* FILTER */
 function filter(t){
   currentFilter = t;
