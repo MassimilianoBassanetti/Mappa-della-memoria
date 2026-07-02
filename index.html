@@ -186,7 +186,41 @@ document.getElementById("search").addEventListener("input", e => {
     `).join("");
 
 });
+function open(p){
 
+  const sidebar = document.getElementById("sidebar");
+  const content = document.getElementById("content");
+
+  sidebar.classList.add("open");
+
+  content.innerHTML = `
+    <h2>${p.nome}</h2>
+
+    <p>${p.storia || "Nessuna descrizione disponibile"}</p>
+
+    ${p.wiki ? `
+      <p>
+        <a href="${p.wiki}" target="_blank">
+          📚 Apri Wikipedia
+        </a>
+      </p>
+    ` : ""}
+
+    ${
+      p.luoghi && p.luoghi.length
+      ? `
+        <hr>
+        <h3>📍 Luoghi interni</h3>
+        ${p.luoghi.map(l => `
+          <div style="padding:6px 0">
+            • ${l.nome}
+          </div>
+        `).join("")}
+      `
+      : ""
+    }
+  `;
+}
 /* GO */
 function go(lat,lng){
   map.setView([lat,lng], 13);
