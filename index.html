@@ -3,133 +3,75 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Atlante Storico Interattivo</title>
+<title>Mappa Storica</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
 <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <style>
-* { box-sizing: border-box; }
+body { margin:0; font-family:Arial; }
 
-body {
-  margin:0;
-  font-family: Arial;
-  overflow:hidden;
-}
-
-/* MAP */
 #map {
   height:100vh;
   width:100vw;
 }
 
-/* TOP SEARCH BAR */
-#topbar {
+/* UI */
+#ui {
   position:absolute;
   top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:10000;
-  width:90%;
-  max-width:420px;
+  left:10px;
+  z-index:1000;
+  width:260px;
 }
 
 #search {
   width:100%;
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  box-shadow:0 2px 10px rgba(0,0,0,0.15);
-  outline:none;
-  font-size:14px;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:6px;
 }
 
 #suggestions {
-  background:white;
-  border-radius:10px;
-  margin-top:5px;
-  overflow:hidden;
-  box-shadow:0 2px 10px rgba(0,0,0,0.15);
-}
-
-/* CHIPS FILTER */
-#chips {
-  position:absolute;
-  top:65px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:10000;
-  display:flex;
-  gap:8px;
-}
-
-.chip {
-  background:white;
+  background:#fff;
   border:1px solid #ddd;
-  padding:6px 10px;
-  border-radius:20px;
-  cursor:pointer;
-  font-size:12px;
+  border-top:none;
+  max-height:160px;
+  overflow:auto;
 }
 
-.chip.active {
-  background:#2c7be5;
-  color:white;
-  border-color:#2c7be5;
+.sug {
+  padding:6px;
+  cursor:pointer;
+}
+
+.sug:hover {
+  background:#eee;
 }
 
 /* SIDEBAR */
 #sidebar {
   position:absolute;
   top:0;
-  right:-420px;
+  right:-380px;
   width:380px;
   height:100%;
-  background:#fff;
-  box-shadow:-2px 0 15px rgba(0,0,0,0.3);
+  background:white;
+  box-shadow:-2px 0 10px rgba(0,0,0,0.2);
   transition:0.3s;
-  z-index:1000;
-  display:flex;
-  flex-direction:column;
+  z-index:2000;
+  overflow:auto;
 }
 
 #sidebar.open {
   right:0;
 }
 
-#header {
-  padding:12px;
-  border-bottom:1px solid #ddd;
-  display:flex;
-  justify-content:space-between;
-}
-
 #content {
   padding:12px;
-  overflow-y:auto;
-  flex:1;
-}
-
-h3 {
-  margin-top:12px;
-  border-left:3px solid #ddd;
-  padding-left:6px;
-  font-size:15px;
-}
-
-.tag {
-  display:inline-block;
-  padding:4px 6px;
-  border-radius:4px;
-  color:white;
-  font-size:12px;
 }
 
 img {
@@ -138,61 +80,25 @@ img {
   margin-top:8px;
 }
 
-.gallery {
-  display:flex;
-  gap:5px;
-  overflow-x:auto;
-  margin-top:8px;
-}
-
-.gallery img {
-  width:70px;
-  height:50px;
-  object-fit:cover;
+button {
+  margin:4px 0;
+  width:100%;
+  padding:6px;
   cursor:pointer;
-}
-
-/* MOBILE */
-@media (max-width:768px){
-  #sidebar {
-    width:100%;
-    height:45%;
-    bottom:-50%;
-    top:auto;
-    right:0;
-    border-radius:16px 16px 0 0;
-  }
-
-  #sidebar.open {
-    bottom:0;
-  }
 }
 </style>
 </head>
 
 <body>
 
-<div id="map"></div>
-
-<!-- SEARCH -->
-<div id="topbar">
-  <input id="search" placeholder="🔍 Cerca luoghi storici..." />
+<div id="ui">
+  <input id="search" placeholder="Cerca luogo...">
   <div id="suggestions"></div>
 </div>
 
-<!-- CHIPS -->
-<div id="chips">
-  <div class="chip active" data-type="Castelli">🏰 Castelli</div>
-  <div class="chip active" data-type="Paesi">🏘️ Paesi</div>
-  <div class="chip active" data-type="Natura">🌄 Natura</div>
-</div>
+<div id="map"></div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
-  <div id="header">
-    <b id="title">Info</b>
-    <span onclick="closeSidebar()" style="cursor:pointer">❌</span>
-  </div>
   <div id="content">Seleziona un punto</div>
 </div>
 
@@ -204,168 +110,120 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   attribution:'© OpenStreetMap'
 }).addTo(map);
 
-L.control.zoom({ position:'bottomright' }).addTo(map);
-
-// cluster
-const cluster = L.markerClusterGroup();
-map.addLayer(cluster);
-
-let punti = [];
+let data = [];
 let routeControl = null;
-let activeTypes = new Set(["Castelli","Paesi","Natura"]);
 
-// colori
-function color(t){
-  return t==="Castelli"?"darkred":
-         t==="Paesi"?"darkblue":
-         "green";
-}
-
-// distanza
-function dist(a,b,c,d){
-  const R=6371;
-  const dLat=(c-a)*Math.PI/180;
-  const dLon=(d-b)*Math.PI/180;
-  const x=Math.sin(dLat/2)**2+
-          Math.cos(a*Math.PI/180)*
-          Math.cos(c*Math.PI/180)*
-          Math.sin(dLon/2)**2;
-  return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-}
-
-// load JSON
+// LOAD DATA
 fetch("./data/punti.json")
 .then(r=>r.json())
-.then(data=>{
-  punti=data;
+.then(d=>{
+  data = d;
   draw();
 });
 
-// draw
+// DRAW MARKERS
 function draw(){
-
-  cluster.clearLayers();
-
-  punti.forEach(p=>{
-
-    if(!activeTypes.has(p.tipo)) return;
-
-    const icon=L.divIcon({
-      html:`<div style="
-        background:${color(p.tipo)};
-        width:14px;height:14px;
-        border-radius:50%;
-        border:2px solid white;"></div>`
-    });
-
-    const m=L.marker([p.lat,p.lng],{icon});
-    m.on("click",()=>open(p));
-    cluster.addLayer(m);
+  data.forEach(p=>{
+    const m = L.marker([p.lat,p.lng]).addTo(map);
+    m.on("click", ()=>open(p));
   });
 }
 
-// sidebar
+// SIDEBAR
 function open(p){
 
   document.getElementById("sidebar").classList.add("open");
-  document.getElementById("title").innerText=p.nome;
 
-  let vicini=punti
-    .filter(x=>x.nome!==p.nome)
-    .map(x=>({...x,d:dist(p.lat,p.lng,x.lat,x.lng)}))
-    .filter(x=>x.d<20)
-    .sort((a,b)=>a.d-b.d)
-    .slice(0,5);
-
-  let gallery="";
-
+  let gallery = "";
   if(p.img && p.img.length){
-    gallery=`
-      <img id="mainImg" src="${p.img[0]}">
-      <div class="gallery">
-        ${p.img.map(i=>`
-          <img src="${i}" onclick="document.getElementById('mainImg').src='${i}'">
-        `).join("")}
-      </div>
+    gallery = `<img src="${p.img[0]}">`;
+  }
+
+  let navButtons = "";
+
+  if(p.luoghi && p.luoghi.length){
+
+    navButtons = p.luoghi.map(l=>`
+      <button onclick="route(${l.lat},${l.lng})">
+        📍 ${l.nome}
+      </button>
+    `).join("");
+
+  } else {
+
+    navButtons = `
+      <button onclick="route(${p.lat},${p.lng})">
+        📍 Vai al punto
+      </button>
     `;
   }
 
-  document.getElementById("content").innerHTML=`
-    <div class="tag" style="background:${color(p.tipo)}">${p.tipo}</div>
+  document.getElementById("content").innerHTML = `
+    <h2>${p.nome}</h2>
 
-    <h3>📜 Storia</h3>
-    ${p.storia}
+    <p><b>Tipo:</b> ${p.tipo || ""}</p>
 
-    <h3>🏛️ Info</h3>
-    ${p.info}
-
-    <h3>💡 Curiosità</h3>
-    ${p.curiosita}
+    <p>${p.storia || ""}</p>
 
     ${gallery}
 
-    ${p.wiki ? `<p><a href="${p.wiki}" target="_blank">📖 Wikipedia</a></p>` : ""}
+    ${p.wiki ? `<p><a href="${p.wiki}" target="_blank">Wikipedia</a></p>` : ""}
 
-    <button onclick="route(${p.lat},${p.lng})">🧭 Naviga</button>
-
-    <h3>📍 Vicini</h3>
-    ${vicini.map(v=>`
-      <div style="padding:5px;border-bottom:1px solid #eee;cursor:pointer"
-      onclick='open(${JSON.stringify(v)})'>
-        <b>${v.nome}</b><br>
-        <small>${v.d.toFixed(1)} km</small>
-      </div>
-    `).join("")}
+    <h3>🧭 Naviga</h3>
+    ${navButtons}
   `;
 }
 
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-}
+// CLOSE AUTO
+document.addEventListener("click",e=>{
+  if(e.target.id === "map"){
+    document.getElementById("sidebar").classList.remove("open");
+  }
+});
 
-// routing
+// ROUTING
 function route(lat,lng){
-  if(routeControl) map.removeControl(routeControl);
 
-  routeControl=L.Routing.control({
+  if(routeControl){
+    map.removeControl(routeControl);
+    routeControl = null;
+  }
+
+  routeControl = L.Routing.control({
     waypoints:[
-      L.latLng(44.6,9.7),
+      L.latLng(map.getCenter()),
       L.latLng(lat,lng)
-    ]
+    ],
+    addWaypoints:false,
+    draggableWaypoints:false
   }).addTo(map);
 }
 
-// autocomplete
+// SEARCH
 document.getElementById("search").addEventListener("input",e=>{
-  const v=e.target.value.toLowerCase();
-  const sug=document.getElementById("suggestions");
 
-  if(!v){sug.innerHTML="";return;}
+  const val = e.target.value.toLowerCase();
+  const sug = document.getElementById("suggestions");
 
-  sug.innerHTML=punti
-    .filter(p=>p.nome.toLowerCase().includes(v))
-    .slice(0,5)
-    .map(p=>`
-      <div style="padding:8px;cursor:pointer;border-bottom:1px solid #eee"
-      onclick="map.setView([${p.lat},${p.lng}],13);document.getElementById('suggestions').innerHTML=''">
-        ${p.nome}
-      </div>
-    `).join("");
+  if(!val){
+    sug.innerHTML="";
+    return;
+  }
+
+  const res = data.filter(p=>p.nome.toLowerCase().includes(val)).slice(0,5);
+
+  sug.innerHTML = res.map(r=>`
+    <div class="sug" onclick="go(${r.lat},${r.lng})">
+      ${r.nome}
+    </div>
+  `).join("");
 });
 
-// chips filter
-document.querySelectorAll(".chip").forEach(c=>{
-  c.addEventListener("click",()=>{
-    c.classList.toggle("active");
-
-    activeTypes = new Set(
-      [...document.querySelectorAll(".chip.active")]
-      .map(x=>x.dataset.type)
-    );
-
-    draw();
-  });
-});
+function go(lat,lng){
+  map.setView([lat,lng],13);
+  document.getElementById("suggestions").innerHTML="";
+  document.getElementById("search").value="";
+}
 
 </script>
 
