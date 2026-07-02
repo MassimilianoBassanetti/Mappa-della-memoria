@@ -19,90 +19,90 @@ body {
   overflow: hidden;
 }
 
-/* MAPPA FULL SCREEN */
+/* MAPPA FULL BACKGROUND */
 #map {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
 }
 
-/* PANNELLO FLOTTANTE (NON FULL HEIGHT) */
+/* 🎯 PANNELLO FLOATING CARD (NUOVO LOOK) */
 #panel {
   position: absolute;
-  top: 15px;
-  left: 15px;
-  width: 300px;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  width: 320px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   overflow: hidden;
   z-index: 1000;
 }
 
-/* SEARCH NON ESCE PIÙ */
+/* SEARCH MODERNO */
 #search {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: none;
-  border-bottom: 1px solid #eee;
   outline: none;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
 }
 
-/* LISTA */
+/* LISTA MODERNA */
 #list {
-  max-height: 260px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
 .item {
-  padding: 10px;
-  border-bottom: 1px solid #f1f1f1;
+  padding: 12px;
   cursor: pointer;
+  border-bottom: 1px solid #f2f2f2;
+  transition: 0.15s;
 }
 
 .item:hover {
-  background: #f8f8f8;
+  background: #f5f7fa;
 }
 
 /* SIDEBAR DETTAGLIO */
 #sidebar {
   position: absolute;
-  right: -360px;
-  top: 15px;
+  top: 50%;
+  right: -380px;
+  transform: translateY(-50%);
   width: 340px;
-  max-height: calc(100% - 30px);
+  max-height: 80vh;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   transition: 0.25s;
   overflow: auto;
   z-index: 1000;
 }
 
 #sidebar.open {
-  right: 15px;
+  right: 20px;
 }
 
 #content {
-  padding: 14px;
+  padding: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- MAP -->
 <div id="map"></div>
 
-<!-- PANEL -->
+<!-- 🎯 FLOATING PANEL -->
 <div id="panel">
   <input id="search" placeholder="🔍 Cerca luogo...">
   <div id="list"></div>
 </div>
 
-<!-- SIDEBAR -->
+<!-- 🎯 SIDEBAR -->
 <div id="sidebar">
   <div id="content">Seleziona un punto</div>
 </div>
@@ -127,15 +127,17 @@ fetch("./data/punti.json")
   draw();
 });
 
-/* MARKERS */
+/* DRAW */
 function draw(){
 
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
   data.forEach(p => {
+
     const m = L.marker([p.lat, p.lng]).addTo(map);
     m.on("click", () => open(p));
+
     markers.push(m);
   });
 }
@@ -169,7 +171,7 @@ function go(lat,lng){
   map.setView([lat,lng], 13);
 }
 
-/* OPEN SIDEBAR */
+/* OPEN */
 function open(p){
 
   document.getElementById("sidebar").classList.add("open");
