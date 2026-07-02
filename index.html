@@ -51,7 +51,20 @@ body { margin:0; font-family:Arial; }
 .sug:hover {
   background:#eee;
 }
-
+#routePanel {
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  width:280px;
+  max-height:40vh;
+  overflow:auto;
+  background:white;
+  z-index:3000;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  padding:10px;
+  font-size:13px;
+}
 /* SIDEBAR */
 #sidebar {
   position:absolute;
@@ -101,6 +114,9 @@ button {
 <div id="sidebar">
   <div id="content">Seleziona un punto</div>
 </div>
+<div id="routePanel">
+
+</div>
 
 <script>
 
@@ -128,7 +144,22 @@ function draw(){
     m.on("click", ()=>open(p));
   });
 }
+function showRoutePanel(route){
 
+  const container = document.getElementById("routePanel");
+
+  const steps = route.instructions || route.instructions;
+
+  container.innerHTML = `
+    <b>🧭 Percorso</b>
+    <hr>
+    ${route.instructions.map(i=>`
+      <div style="margin-bottom:6px;">
+        ➜ ${i.text}
+      </div>
+    `).join("")}
+  `;
+}
 // SIDEBAR
 function open(p){
 
@@ -190,20 +221,26 @@ function route(lat,lng){
   }
 
   routeControl = L.Routing.control({
-    waypoints:[
+    waypoints: [
       L.latLng(map.getCenter()),
       L.latLng(lat,lng)
     ],
-    router: L.Routing.osrmv1 ({
-      serviceUrl: 'https://router.project-osrm.org/route/v1',
-      languege :'it'
+
+    router: L.Routing.osrmv1({
+      serviceUrl: 'https://router.project-osrm.org/route/v1'
     }),
-    lineOptions: {
-      styles: [{ color: '#2c7be5', weight:5 }]},
-    
-    addWaypoints:false,
-    draggableWaypoints:false
+    language: 'it'
+    show: false,          // ❌ nasconde UI default
+    addWaypoints: false,
+    draggableWaypoints: false,
+    routeWhileDragging: false,
+
+    createMarker: function() { return null; } // stile Google Maps
   }).addTo(map);
+
+  routeControl.on('routesfound', function(e){
+    showRoutePanel(e.routes[0]);
+  });
 }
 
 // SEARCH
