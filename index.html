@@ -122,12 +122,14 @@ html, body {
 <script>
 
 const map = L.map('map').setView([44.6, 9.7], 10);
-const sidebar = document.getElementById("sidebar");
-const mapEl = document.getElementById("map");
 
-mapEl.addEventListener("click", () => {
-  sidebar.classList.remove("open");
-});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+setTimeout(() => {
+  map.invalidateSize();
+}, 100);
 
 let data = [];
 let markers = [];
