@@ -125,8 +125,18 @@ html, body {
 const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
 const sidebar = document.getElementById("sidebar");
 const mapEl = document.getElementById("map");
-map.on("click", () => {
-  sidebar.classList.remove("open");
+document.addEventListener("click", (e) => {
+
+  const sidebar = document.getElementById("sidebar");
+  const mapEl = document.getElementById("map");
+
+  const clickedOnSidebar = sidebar.contains(e.target);
+  const clickedOnMarker = e.target.closest(".leaflet-marker-icon");
+
+  // se clicchi fuori da sidebar e fuori da marker → chiudi
+  if (!clickedOnSidebar && !clickedOnMarker) {
+    sidebar.classList.remove("open");
+  }
 });
 
 setTimeout(() => {
