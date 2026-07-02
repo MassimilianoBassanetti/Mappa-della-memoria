@@ -125,24 +125,21 @@ html, body {
 const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
 const sidebar = document.getElementById("sidebar");
 const mapEl = document.getElementById("map");
-document.addEventListener("DOMContentLoaded", () => {
+
+document.addEventListener("click", (e) => {
 
   const sidebar = document.getElementById("sidebar");
-  const mapEl = document.getElementById("map");
+  const clickedOnMarker = e.target.closest(".leaflet-marker-icon");
 
-  document.addEventListener("click", (e) => {
+  if (!sidebar) return;
 
-    const clickedOnSidebar = sidebar && sidebar.contains(e.target);
-    const clickedOnMarker = e.target.closest(".leaflet-marker-icon");
+  const clickedOnSidebar = sidebar.contains(e.target);
 
-    if (!clickedOnSidebar && !clickedOnMarker) {
-      sidebar.classList.remove("open");
-    }
-
-  });
+  if (!clickedOnSidebar && !clickedOnMarker) {
+    sidebar.classList.remove("open");
+  }
 
 });
-
 setTimeout(() => {
   map.invalidateSize();
 }, 100);
@@ -169,6 +166,12 @@ fetch("./data/punti.json")
     console.error("ERRORE CARICAMENTO JSON:", err);
   });
 document.getElementById("results").innerHTML = "";
+  function closeSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) {
+    sidebar.classList.remove("open");
+  }
+}
 /* DRAW */
 function draw(){
 
