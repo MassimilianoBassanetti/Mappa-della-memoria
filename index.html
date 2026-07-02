@@ -50,7 +50,22 @@ html, body {
   justify-content: center;
   flex-wrap: wrap;
 }
+#sidebar{
+  position: fixed;
+  right: -350px;
+  top: 0;
+  width: 320px;
+  height: 100%;
+  background: white;
+  transition: 0.25s;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+  z-index: 9999;
+  padding: 15px;
+}
 
+#sidebar.open{
+  right: 0;
+}
 .cat {
   padding: 6px 10px;
   border-radius: 999px;
@@ -125,7 +140,7 @@ fetch("./data/punti.json")
     console.log("DATA CARICATA:", d);
 
     data = d;
-    
+    renderList(data);
     draw();
   })
   .catch(err => {
@@ -154,7 +169,7 @@ function draw(){
 /* FILTER */
 function filter(t){
   currentFilter = t;
-  render();
+ 
   draw();
 }
 
@@ -255,6 +270,7 @@ function go(lat,lng){
 }
 
 </script>
-
+<div id="sidebar">
+</div>
 </body>
 </html>
