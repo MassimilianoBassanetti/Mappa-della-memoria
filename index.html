@@ -159,12 +159,30 @@ function filter(t){
 }
 function renderList(list){
 
-  document.getElementById("results").innerHTML =
-    list.map(p => `
-      <div onclick="open(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-        ${p.nome}
-      </div>
-    `).join("");
+  const container = document.getElementById("results");
+
+  container.innerHTML = list.map(p => `
+    <div class="item" data-id="${p.lat}_${p.lng}">
+      <b>${p.nome}</b><br>
+      <small>${p.tipo || ""}</small>
+    </div>
+  `).join("");
+
+  // EVENT LISTENER PULITO (NO INLINE ONCLICK)
+  container.querySelectorAll(".item").forEach(el => {
+
+    el.addEventListener("click", () => {
+
+      const id = el.dataset.id;
+
+      const p = data.find(x =>
+        `${x.lat}_${x.lng}` === id
+      );
+
+      if (p) open(p);
+    });
+
+  });
 }
 /* RENDER LIST */
 function render(list = data){
