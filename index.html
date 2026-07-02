@@ -15,78 +15,63 @@ html, body {
   font-family: system-ui, Arial;
 }
 
-/* PANNELLO SINISTRO SICURO */
+/* MAPPA */
+#map {
+  position: absolute;
+  top: 0;
+  left: 320px;
+  right: 0;
+  bottom: 0;
+}
+
+/* PANNELLO */
 #panel {
-  position: fixed;
+  position: absolute;
   top: 20px;
   left: 20px;
 
-  width: 320px;
-
+  width: 300px;
   background: white;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  max-height: calc(100vh - 40px);
+
   overflow: hidden;
-}
-/* header cliccabile */
-#panelHeader {
-  padding: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #f5f5f5;
-  user-select: none;
+  z-index: 1000;
 }
 
-/* contenuto */
-#panelBody {
-  display: flex;
-  flex-direction: column;
-}
-
-/* stato chiuso */
-#panel.collapsed #panelBody {
-  display: none;
-}
-
-/* SEARCH (SEMPRE VISIBILE) */
+/* SEARCH */
 #search {
- 
-  padding: 12px;
+  padding: 10px;
   border: none;
   border-bottom: 1px solid #ddd;
   outline: none;
-  font-size: 14px;
 }
 
-/* CATEGORIE (SEMPRE VISIBILI) */
+/* CATEGORIE */
 #cats {
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 8px;
   gap: 6px;
-  border-bottom: 1px solid #eee;
 }
 
 .cat {
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #ddd;
   background: white;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-/* LISTA (SCROLLA QUI, NON NASCONDE ALTRO) */
+/* LISTA */
 #list {
-  flex: 1;
+  max-height: 300px;
   overflow-y: auto;
 }
 
-/* ITEM */
 .item {
   padding: 10px;
   border-bottom: 1px solid #eee;
@@ -97,18 +82,9 @@ html, body {
   background: #f5f5f5;
 }
 
-/* MAPPA */
-#map {
-  position: fixed;
-  top: 0;
-  left: 320px;
-  right: 0;
-  bottom: 0;
-}
-
 /* SIDEBAR DETTAGLIO */
 #sidebar {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: -360px;
   width: 340px;
@@ -116,8 +92,8 @@ html, body {
   background: white;
   border-left: 1px solid #ddd;
   transition: 0.2s;
-  z-index: 2000;
   overflow: auto;
+  z-index: 2000;
 }
 
 #sidebar.open {
@@ -132,36 +108,25 @@ html, body {
 
 <body>
 
-<!-- PANNELLO -->
 <div id="panel">
-  <div id="panelHeader" onclick="togglePanel()">
-    Mappa | Filtri"
-  </div>
-  <div id="panelBody">
-  <!-- SEARCH -->
   <input id="search" placeholder="🔍 Cerca luogo...">
 
-  <!-- CATEGORIE -->
   <div id="cats">
     <button class="cat" onclick="filter('ALL')">Tutti</button>
-    <button class="cat">🏰 Castelli</button>
-    <button class="cat">🏘️ Paesi</button>
-    <button class="cat">🌄 Natura</button>
+    <button class="cat" onclick="filter('Castelli')">🏰 Castelli</button>
+    <button class="cat" onclick="filter('Paesi')">🏘️ Paesi</button>
+    <button class="cat" onclick="filter('Natura')">🌄 Natura</button>
   </div>
 
-  <!-- LISTA -->
   <div id="list"></div>
-
 </div>
 
-<!-- MAPPA -->
 <div id="map"></div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <div id="content">Seleziona un punto</div>
 </div>
-</div>
+
 <script>
 
 const map = L.map('map').setView([44.6, 9.7], 10);
@@ -183,27 +148,39 @@ fetch("./data/punti.json")
   draw();
 });
 
-/* DRAW */
+/* DRAW MARKERS */
 function draw(){
 
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
   data.forEach(p => {
+
+    if(currentFilter !== "ALL" && p.tipo !== currentFilter) return;
+
     const m = L.marker([p.lat, p.lng]).addTo(map);
     m.on("click", () => open(p));
+
     markers.push(m);
   });
 }
-function togglePanel()
-{
-  document.getElementById("panel").classList.toggle("collapsed");
+
+/* FILTER */
+function filter(t){
+  currentFilter = t;
+  renderList();
+  draw();
 }
-/* LIST */
+
+/* LISTA */
 function renderList(list = data){
 
+  const filtered = list.filter(p =>
+    currentFilter === "ALL" || p.tipo === currentFilter
+  );
+
   document.getElementById("list").innerHTML =
-    list.map(p => `
+    filtered.map(p => `
       <div class="item" onclick="go(${p.lat},${p.lng})">
         <b>${p.nome}</b><br>
         <small>${p.tipo || ""}</small>
@@ -220,15 +197,20 @@ document.getElementById("search").addEventListener("input", e => {
     p.nome.toLowerCase().includes(v)
   );
 
-  renderList(filtered);
+  document.getElementById("list").innerHTML =
+    filtered.map(p => `
+      <div class="item" onclick="go(${p.lat},${p.lng})">
+        <b>${p.nome}</b>
+      </div>
+    `).join("");
 });
 
-/* GO */
+/* CLICK LIST */
 function go(lat,lng){
   map.setView([lat,lng], 13);
 }
 
-/* OPEN */
+/* SIDEBAR */
 function open(p){
 
   document.getElementById("sidebar").classList.add("open");
