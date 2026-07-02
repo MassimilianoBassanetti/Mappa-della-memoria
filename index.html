@@ -122,18 +122,12 @@ html, body {
 <script>
 
 const map = L.map('map').setView([44.6, 9.7], 10);
-document.addEventListener("click", (e) => {
-  const sidebar = document.getElementById("sidebar");
-  const mapEl = document.getElementById("map");
+const sidebar = document.getElementById("sidebar");
+const mapEl = document.getElementById("map");
 
-  // se clic fuori sidebar E fuori marker UI
-  if (!sidebar.contains(e.target) && !e.target.closest(".leaflet-marker-icon")) {
-    sidebar.classList.remove("open");
-  }
+mapEl.addEventListener("click", () => {
+  sidebar.classList.remove("open");
 });
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap'
-}).addTo(map);
 
 let data = [];
 let markers = [];
