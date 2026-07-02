@@ -207,7 +207,12 @@ document.getElementById("search").addEventListener("input", e => {
   );
 
   const container = document.getElementById("results");
-
+  if(v==""){
+    container.style.display="none";
+    container.innerHTML="";
+    return;
+  }
+  container.style.display="block";
   container.innerHTML = "";
 
   filtered.forEach(p => {
