@@ -122,6 +122,7 @@ html, body {
 
 <script>
 let routeLine=null;
+let route=[];
 const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
 const sidebar = document.getElementById("sidebar");
 const mapEl = document.getElementById("map");
@@ -250,6 +251,35 @@ function createRoute(pLat, pLng) {
 
   drawRoute(routePoints);
 }
+  function addToRoute(lat, lng, nome) {
+  route.push({ lat, lng, nome });
+  drawRoute();
+}
+  async function drawRouteOSRM() {
+
+  if (route.length < 2) return;
+
+  const coords = route.map(p => `${p.lng},${p.lat}`).join(";");
+
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const geometry = data.routes[0].geometry;
+
+  // elimina vecchia linea
+  if (routeLayer) map.removeLayer(routeLayer);
+
+  routeLayer = L.geoJSON(geometry, {
+    style: {
+      color: "red",
+      weight: 5
+    }
+  }).addTo(map);
+
+  map.fitBounds(routeLayer.getBounds());
+}
 /* RENDER LIST */
 function renderList(list){
 
@@ -299,7 +329,7 @@ document.getElementById("search").addEventListener("input", e => {
       <b>${p.nome}</b><br>
       <small>${p.tipo || ""}</small>
     `;
-
+    
     div.addEventListener("click", () => {
       map.setView([p.lat, p.lng], 13);
       open(p);
@@ -327,7 +357,9 @@ function open(p){
     <h2>${p.nome}</h2>
 
     <p>${p.storia || "Nessuna descrizione disponibile"}</p>
-
+    <button onclick="drawRouteOSRM()">
+    🚗 Avvia tragitto
+    </button>
     ${p.wiki ? `
       <p>
         <a href="${p.wiki}" target="_blank">
@@ -349,31 +381,22 @@ function open(p){
       `
       : ""
     }
-   ${
-  nearby.length
-    ? `
-      <hr>
-      <h3>📍 Nei dintorni</h3>
+ ${nearby.map(n => `
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
 
-      ${nearby.map(n => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+    <!-- click testo = vai al punto -->
+    <span style="cursor:pointer; flex:1"
+          onclick="go(${n.lat}, ${n.lng})">
+      • ${n.nome}
+    </span>
 
-          <!-- CLICK TESTO = APRE PUNTO -->
-          <span style="cursor:pointer; flex:1"
-                onclick="go(${n.lat}, ${n.lng})">
-            • ${n.nome} (${n.dist.toFixed(1)} km)
-          </span>
+    <!-- bottone = aggiungi al percorso -->
+    <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
+      ➕
+    </button>
 
-          <!-- BUTTON = AGGIUNGI AL TRAGITTO -->
-          <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
-            ➕
-          </button>
-
-        </div>
-      `).join("")}
-    `
-    : ""
-}                     
+  </div>
+`).join("")}
   `;
 }
   function render()
