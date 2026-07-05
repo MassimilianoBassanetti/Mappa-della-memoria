@@ -349,22 +349,31 @@ function open(p){
       `
       : ""
     }
-    ${
+   ${
   nearby.length
     ? `
       <hr>
       <h3>📍 Nei dintorni</h3>
+
       ${nearby.map(n => `
-        <div style="padding:6px 0; cursor:pointer"
-             onclick="go(${n.lat}, ${n.lng})">
-          • ${n.nome} (${n.dist.toFixed(1)} km)
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+
+          <!-- CLICK TESTO = APRE PUNTO -->
+          <span style="cursor:pointer; flex:1"
+                onclick="go(${n.lat}, ${n.lng})">
+            • ${n.nome} (${n.dist.toFixed(1)} km)
+          </span>
+
+          <!-- BUTTON = AGGIUNGI AL TRAGITTO -->
+          <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
+            ➕
+          </button>
+
         </div>
       `).join("")}
     `
     : ""
-}
-<button onclick="createRoute(${p.lat}, ${p.lng})">
-                               </button>                               
+}                     
   `;
 }
   function render()
