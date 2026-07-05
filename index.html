@@ -234,6 +234,32 @@ function filter(t){
  
   draw();
 }
+  function renderRouteList() {
+
+  const content = document.getElementById("content");
+
+  const html = route.map((p, i) => `
+    <div style="padding:4px 0">
+      ${i + 1}. ${p.nome}
+    </div>
+  `).join("");
+
+  document.getElementById("routeBox")?.remove();
+
+  const box = document.createElement("div");
+  box.id = "routeBox";
+
+  box.innerHTML = `
+    <hr>
+    <h3>📍 Percorso</h3>
+    ${html}
+    <button onclick="drawRouteOSRM()">
+      🚗 Avvia navigazione
+    </button>
+  `;
+
+  content.appendChild(box);
+}
 function createRoute(pLat, pLng) {
 
   const center = data.find(p => p.lat === pLat && p.lng === pLng);
@@ -255,7 +281,7 @@ function createRoute(pLat, pLng) {
   route.push({ lat, lng, nome });
   drawRoute();
 }
-  async function drawRouteOSRM() {
+ async function drawRouteOSRM() {
 
   if (route.length < 2) return;
 
@@ -266,16 +292,12 @@ function createRoute(pLat, pLng) {
   const res = await fetch(url);
   const data = await res.json();
 
-  const geometry = data.routes[0].geometry;
+  const geo = data.routes[0].geometry;
 
-  // elimina vecchia linea
   if (routeLayer) map.removeLayer(routeLayer);
 
-  routeLayer = L.geoJSON(geometry, {
-    style: {
-      color: "red",
-      weight: 5
-    }
+  routeLayer = L.geoJSON(geo, {
+    style: { color: "red", weight: 5 }
   }).addTo(map);
 
   map.fitBounds(routeLayer.getBounds());
@@ -363,7 +385,7 @@ function open(p){
 </button>
 
 <hr>
-
+<div id="routeBox"></div>
 ${(nearby || []).map(n => `
   <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
 
