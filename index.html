@@ -121,7 +121,7 @@ html, body {
 </div>
 
 <script>
-
+let routeLine=null;
 const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
 const sidebar = document.getElementById("sidebar");
 const mapEl = document.getElementById("map");
@@ -192,6 +192,22 @@ document.getElementById("results").innerHTML = "";
 
   return R * c;
 }
+  function drawRoute(points) {
+
+  // elimina vecchia linea
+  if (routeLine) {
+    map.removeLayer(routeLine);
+  }
+
+  const latlngs = points.map(p => [p.lat, p.lng]);
+
+  routeLine = L.polyline(latlngs, {
+    color: 'red',
+    weight: 4
+  }).addTo(map);
+
+  map.fitBounds(routeLine.getBounds());
+}
 /* DRAW */
 function draw(){
 
@@ -217,7 +233,23 @@ function filter(t){
  
   draw();
 }
+function createRoute(pLat, pLng) {
 
+  const center = data.find(p => p.lat === pLat && p.lng === pLng);
+
+  const nearby = data
+    .filter(x => x !== center)
+    .map(x => ({
+      ...x,
+      dist: getDistance(center.lat, center.lng, x.lat, x.lng)
+    }))
+    .filter(x => x.dist < 30)
+    .sort((a, b) => a.dist - b.dist);
+
+  const routePoints = [center, ...nearby];
+
+  drawRoute(routePoints);
+}
 /* RENDER LIST */
 function renderList(list){
 
@@ -331,6 +363,8 @@ function open(p){
     `
     : ""
 }
+<button onclick="createRoute(${p.lat}, ${p.lng})">
+                               </button>                               
   `;
 }
   function render()
