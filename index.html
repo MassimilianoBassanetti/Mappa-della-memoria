@@ -12,61 +12,27 @@
 html, body {
   margin: 0;
   height: 100%;
-  font-family: system-ui;
 }
 
 #map {
-  position: absolute;
-  inset: 0;
-}
-
-#ui {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  width: 420px;
-}
-
-#search {
-  width: 100%;
-  padding: 12px;
-  border-radius: 999px;
-  border: none;
-  outline: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  height: 100vh;
+  width: 100vw;
 }
 
 #sidebar {
   position: fixed;
-  right: -350px;
+  right: -320px;
   top: 0;
   width: 320px;
   height: 100%;
   background: white;
-  transition: 0.25s;
-  box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-  z-index: 9999;
+  transition: 0.3s;
   padding: 15px;
+  box-shadow: -10px 0 20px rgba(0,0,0,0.2);
 }
 
 #sidebar.open {
   right: 0;
-}
-
-#results {
-  margin-top: 10px;
-  display: none;
-  max-height: 200px;
-  overflow: auto;
-  background: white;
-}
-
-.item {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -75,141 +41,47 @@ html, body {
 
 <div id="map"></div>
 
-<div id="ui">
-  <input id="search" placeholder="Cerca luogo...">
-  <div id="results"></div>
-</div>
-
 <div id="sidebar">
   <div id="content"></div>
 </div>
 
 <script>
-
 const map = L.map('map').setView([44.6, 9.7], 10);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
 
-let data = [];
-let markers = [];
-let route = [];
-let routeLayer = null;
+const sidebar = document.getElementById("sidebar");
+const content = document.getElementById("content");
 
-/* LOAD DATA */
-fetch("./data/punti.json")
-  .then(r => r.json())
-  .then(d => {
-    data = d;
-    draw();
+const data = [
+  { nome: "Castello di Rivalta", lat: 44.717, lng: 9.617, storia: "Castello medievale" },
+  { nome: "Grazzano Visconti", lat: 44.949, lng: 9.667, storia: "Borgo neomedievale" },
+  { nome: "Monte Penice", lat: 44.773, lng: 9.331, storia: "Montagna panoramica" }
+];
+
+data.forEach(p => {
+  const marker = L.marker([p.lat, p.lng]).addTo(map);
+
+  marker.on("click", () => {
+    open(p);
   });
+});
 
-/* DRAW MARKERS */
-function draw() {
-
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  data.forEach(p => {
-
-    const marker = L.marker([p.lat, p.lng]).addTo(map);
-
-    marker.on("click", () => open(p));
-
-    markers.push(marker);
-  });
-}
-
-/* OPEN SIDEBAR */
 function open(p) {
-
-  const sidebar = document.getElementById("sidebar");
-  const content = document.getElementById("content");
-
   sidebar.classList.add("open");
-
-  const nearby = data
-    .filter(x => x !== p)
-    .map(x => ({
-      ...x,
-      dist: getDistance(p.lat, p.lng, x.lat, x.lng)
-    }))
-    .filter(x => x.dist < 50)
-    .sort((a,b) => a.dist - b.dist);
 
   content.innerHTML = `
     <h2>${p.nome}</h2>
-    <p>${p.storia || ""}</p>
-
-    <button onclick="drawRouteOSRM()">
-      🚗 Avvia tragitto
-    </button>
-
-    <hr>
-
-    ${nearby.map(n => `
-      <div style="display:flex;justify-content:space-between">
-        <span onclick="go(${n.lat},${n.lng})" style="cursor:pointer">
-          ${n.nome}
-        </span>
-
-        <button onclick="event.stopPropagation(); addToRoute(${n.lat},${n.lng},'${n.nome}')">
-          ➕
-        </button>
-      </div>
-    `).join("")}
+    <p>${p.storia}</p>
   `;
 }
 
-/* DISTANCE */
-function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLon = (lon2-lon1)*Math.PI/180;
-
-  const a =
-    Math.sin(dLat/2)**2 +
-    Math.cos(lat1*Math.PI/180) *
-    Math.cos(lat2*Math.PI/180) *
-    Math.sin(dLon/2)**2;
-
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-/* ADD ROUTE */
-function addToRoute(lat,lng,nome){
-  route.push({lat,lng,nome});
-}
-
-/* DRAW ROUTE */
-function drawRouteOSRM(){
-
-  if(route.length < 2) return;
-
-  const coords = route.map(p => `${p.lng},${p.lat}`).join(";");
-
-  fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
-    .then(r => r.json())
-    .then(d => {
-
-      const geo = d.routes[0].geometry;
-
-      if(routeLayer) map.removeLayer(routeLayer);
-
-      routeLayer = L.geoJSON(geo, {
-        style: {color:"red", weight:4}
-      }).addTo(map);
-
-      map.fitBounds(routeLayer.getBounds());
-    });
-}
-
-/* GO */
-function go(lat,lng){
-  map.setView([lat,lng], 13);
-}
-
+// chiusura clic fuori
+map.on("click", () => {
+  sidebar.classList.remove("open");
+});
 </script>
 
 </body>
