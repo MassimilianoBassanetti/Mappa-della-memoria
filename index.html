@@ -43,9 +43,13 @@ html, body {
 
 <div id="sidebar">
   <div id="content"></div>
+  <hr>
+  <h3>Percorso</h3>
+  <div id="routeBox"></div>
 </div>
 
 <script>
+
 const map = L.map('map').setView([44.6, 9.7], 10);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -55,33 +59,68 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const sidebar = document.getElementById("sidebar");
 const content = document.getElementById("content");
 
-const data = [
-  { nome: "Castello di Rivalta", lat: 44.717, lng: 9.617, storia: "Castello medievale" },
-  { nome: "Grazzano Visconti", lat: 44.949, lng: 9.667, storia: "Borgo neomedievale" },
-  { nome: "Monte Penice", lat: 44.773, lng: 9.331, storia: "Montagna panoramica" }
-];
+let data = [];
+let route = [];
+let markers = [];
 
-data.forEach(p => {
-  const marker = L.marker([p.lat, p.lng]).addTo(map);
-
-  marker.on("click", () => {
-    open(p);
+/* LOAD JSON */
+fetch("./data/punti.json")
+  .then(r => r.json())
+  .then(d => {
+    data = d;
+    draw();
   });
-});
 
+/* DRAW MARKERS */
+function draw() {
+
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  data.forEach(p => {
+    const marker = L.marker([p.lat, p.lng]).addTo(map);
+
+    marker.on("click", () => {
+      addToRoute(p);
+      open(p);
+    });
+
+    markers.push(marker);
+  });
+}
+
+/* ADD ROUTE */
+function addToRoute(p) {
+  route.push(p);
+  renderRoute();
+}
+
+/* SHOW ROUTE ORDER */
+function renderRoute() {
+  const box = document.getElementById("routeBox");
+
+  box.innerHTML = route.map((p, i) => `
+    <div>
+      ${i + 1}. ${p.nome}
+    </div>
+  `).join("");
+}
+
+/* OPEN SIDEBAR */
 function open(p) {
   sidebar.classList.add("open");
 
   content.innerHTML = `
     <h2>${p.nome}</h2>
-    <p>${p.storia}</p>
+    <p>${p.storia || ""}</p>
   `;
 }
 
-// chiusura clic fuori
+/* CLOSE ON MAP CLICK */
 map.on("click", () => {
   sidebar.classList.remove("open");
 });
+
 </script>
 
 </body>
