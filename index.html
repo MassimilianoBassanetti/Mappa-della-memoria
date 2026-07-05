@@ -354,30 +354,30 @@ function open(p){
   sidebar.classList.add("open");
 
   content.innerHTML = `
-    <h2>${p.nome}</h2>
+   <h2>${p.nome}</h2>
 
-    <p>${p.storia || "Nessuna descrizione disponibile"}</p>
-    <button onclick="drawRouteOSRM()">
-    🚗 Avvia tragitto
+<p>${p.storia || "Nessuna descrizione disponibile"}</p>
+
+<button onclick="drawRouteOSRM()">
+  🚗 Avvia tragitto
+</button>
+
+<hr>
+
+${(nearby || []).map(n => `
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
+
+    <span style="cursor:pointer; flex:1"
+          onclick="go(${n.lat}, ${n.lng})">
+      • ${n.nome}
+    </span>
+
+    <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, ${JSON.stringify(n.nome)})">
+      ➕
     </button>
-    ${p.wiki ? `
-      <p>
-        <a href="${p.wiki}" target="_blank">
-          📚 Apri Wikipedia
-        </a>
-      </p>
-    ` : ""}
 
-    ${
-      p.luoghi && p.luoghi.length
-      ? `
-        <hr>
-        <h3>📍 Luoghi interni</h3>
-        ${p.luoghi.map(l => `
-          <div style="padding:6px 0">
-            • ${l.nome}
-          </div>
-        `).join("")}
+  </div>
+`).join("")}
       `
       : ""
     }
