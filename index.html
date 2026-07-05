@@ -362,63 +362,46 @@ document.getElementById("search").addEventListener("input", e => {
 
 });
 function open(p){
-  console.trace("OPEN CHIAMATA");
+
   const sidebar = document.getElementById("sidebar");
   const content = document.getElementById("content");
+
   const nearby = data
-  .filter(x => x !== p)
-  .map(x => ({
-    ...x,
-    dist: getDistance(p.lat, p.lng, x.lat, x.lng)
-  }))
-  .filter(x => x.dist < 30) // 30 km raggio
-  .sort((a, b) => a.dist - b.dist);
+    .filter(x => x !== p)
+    .map(x => ({
+      ...x,
+      dist: getDistance(p.lat, p.lng, x.lat, x.lng)
+    }))
+    .filter(x => x.dist < 30)
+    .sort((a, b) => a.dist - b.dist);
+
   sidebar.classList.add("open");
 
   content.innerHTML = `
-   <h2>${p.nome}</h2>
+    <h2>${p.nome}</h2>
+    <p>${p.storia || "Nessuna descrizione disponibile"}</p>
 
-<p>${p.storia || "Nessuna descrizione disponibile"}</p>
-
-<button onclick="drawRouteOSRM()">
-  🚗 Avvia tragitto
-</button>
-
-<hr>
-<div id="routeBox"></div>
-${(nearby || []).map(n => `
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
-
-    <span style="cursor:pointer; flex:1"
-          onclick="go(${n.lat}, ${n.lng})">
-      • ${n.nome}
-    </span>
-
-    <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, ${JSON.stringify(n.nome)})">
-      ➕
+    <button onclick="drawRouteOSRM()">
+      🚗 Avvia tragitto
     </button>
 
-  </div>
-`).join("")}
-      `
-      : ""
-    }
- ${nearby.map(n => `
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
+    <hr>
+    <div id="routeBox"></div>
 
-    <!-- click testo = vai al punto -->
-    <span style="cursor:pointer; flex:1"
-          onclick="go(${n.lat}, ${n.lng})">
-      • ${n.nome}
-    </span>
+    ${(nearby || []).map(n => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
 
-    <!-- bottone = aggiungi al percorso -->
-    <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
-      ➕
-    </button>
+        <span style="cursor:pointer; flex:1"
+              onclick="go(${n.lat}, ${n.lng})">
+          • ${n.nome}
+        </span>
 
-  </div>
-`).join("")}
+        <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
+          ➕
+        </button>
+
+      </div>
+    `).join("")}
   `;
 }
   function render()
