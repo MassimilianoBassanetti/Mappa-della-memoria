@@ -15,43 +15,30 @@ html, body {
   font-family: system-ui;
 }
 
-/* MAPPA FULLSCREEN */
 #map {
   position: absolute;
   inset: 0;
- 
 }
 
-/* 🔥 OVERLAY CENTRALE VERA */
 #ui {
   position: absolute;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
-
   width: 420px;
 }
 
-/* SEARCH */
 #search {
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px;
   border-radius: 999px;
   border: none;
   outline: none;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }
 
-/* CATEGORIE */
-#cats {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-#sidebar{
+#sidebar {
   position: fixed;
   right: -350px;
   top: 0;
@@ -64,38 +51,22 @@ html, body {
   padding: 15px;
 }
 
-#sidebar.open{
+#sidebar.open {
   right: 0;
 }
-.cat {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid #ddd;
-  background: white;
-  cursor: pointer;
-  font-size: 13px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-}
 
-/* RISULTATI */
 #results {
   margin-top: 10px;
+  display: none;
   max-height: 200px;
   overflow: auto;
-  display: none;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
 .item {
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #eee;
   cursor: pointer;
-}
-
-.item:hover {
-  background: #f5f5f5;
 }
 </style>
 </head>
@@ -104,267 +75,59 @@ html, body {
 
 <div id="map"></div>
 
-<!-- UI FLOATING -->
 <div id="ui">
-
-  <input id="search" placeholder="🔍 Cerca luogo...">
-
-  <div id="cats">
-    <button class="cat" onclick="filter('ALL')">Tutti</button>
-    <button class="cat" onclick="filter('Castelli')">🏰 Castelli</button>
-    <button class="cat" onclick="filter('Paesi')">🏘️ Paesi</button>
-    <button class="cat" onclick="filter('Natura')">🌄 Natura</button>
-  </div>
-
+  <input id="search" placeholder="Cerca luogo...">
   <div id="results"></div>
+</div>
 
+<div id="sidebar">
+  <div id="content"></div>
 </div>
 
 <script>
-let routeLine=null;
-let route=[];
-const map = L.map('map').setView([44.6, 9.7], 10); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap' }).addTo(map);
-const sidebar = document.getElementById("sidebar");
-const mapEl = document.getElementById("map");
 
-document.addEventListener("DOMContentLoaded", () => {
+const map = L.map('map').setView([44.6, 9.7], 10);
 
-  const mapEl = document.getElementById("map");
-
-  document.addEventListener("click", (e) => {
-
-    const sidebar = document.getElementById("sidebar");
-    if (!sidebar) return;
-
-    const clickedMarker = e.target.closest(".leaflet-marker-icon");
-    const clickedSidebar = sidebar.contains(e.target);
-
-    if (!clickedSidebar && !clickedMarker) {
-      sidebar.classList.remove("open");
-    }
-
-  });
-
-});
-setTimeout(() => {
-  map.invalidateSize();
-}, 100);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
 
 let data = [];
 let markers = [];
-let currentFilter = "ALL";
+let route = [];
+let routeLayer = null;
 
-/* LOAD */
-
+/* LOAD DATA */
 fetch("./data/punti.json")
-  .then(r => {
-    console.log("STATUS FILE:", r.status);
-    return r.json();
-  })
+  .then(r => r.json())
   .then(d => {
-    console.log("DATA CARICATA:", d);
-
     data = d;
-    renderList(data);
     draw();
-  })
-  .catch(err => {
-    console.error("ERRORE CARICAMENTO JSON:", err);
   });
-document.getElementById("results").innerHTML = "";
-  function closeSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) {
-    sidebar.classList.remove("open");
-  }
-}
-  function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
 
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-  return R * c;
-}
-  function drawRoute(points) {
-
-  // elimina vecchia linea
-  if (routeLine) {
-    map.removeLayer(routeLine);
-  }
-
-  const latlngs = points.map(p => [p.lat, p.lng]);
-
-  routeLine = L.polyline(latlngs, {
-    color: 'red',
-    weight: 4
-  }).addTo(map);
-
-  map.fitBounds(routeLine.getBounds());
-}
-/* DRAW */
-function draw(){
+/* DRAW MARKERS */
+function draw() {
 
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
-  const filtered = data.filter(p =>
-    currentFilter === "ALL" || p.tipo === currentFilter
-  );
+  data.forEach(p => {
 
-  filtered.forEach(p => {
-
-    const marker = L.marker([Number(p.lat), Number(p.lng)]).addTo(map);
+    const marker = L.marker([p.lat, p.lng]).addTo(map);
 
     marker.on("click", () => open(p));
 
     markers.push(marker);
   });
 }
-/* FILTER */
-function filter(t){
-  currentFilter = t;
- 
-  draw();
-}
-  function renderRouteList() {
 
-  const content = document.getElementById("content");
-
-  const html = route.map((p, i) => `
-    <div style="padding:4px 0">
-      ${i + 1}. ${p.nome}
-    </div>
-  `).join("");
-
-  document.getElementById("routeBox")?.remove();
-
-  const box = document.createElement("div");
-  box.id = "routeBox";
-
-  box.innerHTML = `
-    <hr>
-    <h3>📍 Percorso</h3>
-    ${html}
-    <button onclick="drawRouteOSRM()">
-      🚗 Avvia navigazione
-    </button>
-  `;
-
-  content.appendChild(box);
-}
-function createRoute(pLat, pLng) {
-
-  const center = data.find(p => p.lat === pLat && p.lng === pLng);
-
-  const nearby = data
-    .filter(x => x !== center)
-    .map(x => ({
-      ...x,
-      dist: getDistance(center.lat, center.lng, x.lat, x.lng)
-    }))
-    .filter(x => x.dist < 30)
-    .sort((a, b) => a.dist - b.dist);
-
-  const routePoints = [center, ...nearby];
-
-  drawRoute(routePoints);
-}
-  function addToRoute(lat, lng, nome) {
-  route.push({ lat, lng, nome });
-  drawRoute();
-}
- async function drawRouteOSRM() {
-
-  if (route.length < 2) return;
-
-  const coords = route.map(p => `${p.lng},${p.lat}`).join(";");
-
-  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
-
-  const res = await fetch(url);
-  const data = await res.json();
-
-  const geo = data.routes[0].geometry;
-
-  if (routeLayer) map.removeLayer(routeLayer);
-
-  routeLayer = L.geoJSON(geo, {
-    style: { color: "red", weight: 5 }
-  }).addTo(map);
-
-  map.fitBounds(routeLayer.getBounds());
-}
-/* RENDER LIST */
-function renderList(list){
-
-  const container = document.getElementById("results");
-
-  container.innerHTML = "";
-
-  list.forEach(p => {
-
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `<b>${p.nome}</b><br><small>${p.tipo || ""}</small>`;
-
-    div.addEventListener("click", () => {
-      map.setView([p.lat, p.lng], 13);
-      
-    });
-
-    container.appendChild(div);
-  });
-}
-/* SEARCH */
-document.getElementById("search").addEventListener("input", e => {
-
-  const v = e.target.value.toLowerCase();
-
-  const filtered = data.filter(p =>
-    p.nome.toLowerCase().includes(v)
-  );
-
-  const container = document.getElementById("results");
-  if(v==""){
-    container.style.display="none";
-    container.innerHTML="";
-    return;
-  }
-  container.style.display="block";
-  container.innerHTML = "";
-
-  filtered.forEach(p => {
-
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <b>${p.nome}</b><br>
-      <small>${p.tipo || ""}</small>
-    `;
-    
-    div.addEventListener("click", () => {
-      map.setView([p.lat, p.lng], 13);
-      open(p);
-    });
-
-    container.appendChild(div);
-  });
-
-});
-function open(p){
+/* OPEN SIDEBAR */
+function open(p) {
 
   const sidebar = document.getElementById("sidebar");
   const content = document.getElementById("content");
+
+  sidebar.classList.add("open");
 
   const nearby = data
     .filter(x => x !== p)
@@ -372,48 +135,82 @@ function open(p){
       ...x,
       dist: getDistance(p.lat, p.lng, x.lat, x.lng)
     }))
-    .filter(x => x.dist < 30)
-    .sort((a, b) => a.dist - b.dist);
-
-  sidebar.classList.add("open");
+    .filter(x => x.dist < 50)
+    .sort((a,b) => a.dist - b.dist);
 
   content.innerHTML = `
     <h2>${p.nome}</h2>
-    <p>${p.storia || "Nessuna descrizione disponibile"}</p>
+    <p>${p.storia || ""}</p>
 
     <button onclick="drawRouteOSRM()">
       🚗 Avvia tragitto
     </button>
 
     <hr>
-    <div id="routeBox"></div>
 
-    ${(nearby || []).map(n => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0">
-
-        <span style="cursor:pointer; flex:1"
-              onclick="go(${n.lat}, ${n.lng})">
-          • ${n.nome}
+    ${nearby.map(n => `
+      <div style="display:flex;justify-content:space-between">
+        <span onclick="go(${n.lat},${n.lng})" style="cursor:pointer">
+          ${n.nome}
         </span>
 
-        <button onclick="event.stopPropagation(); addToRoute(${n.lat}, ${n.lng}, '${n.nome}')">
+        <button onclick="event.stopPropagation(); addToRoute(${n.lat},${n.lng},'${n.nome}')">
           ➕
         </button>
-
       </div>
     `).join("")}
   `;
 }
-  function render()
-  {}
+
+/* DISTANCE */
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2)**2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ADD ROUTE */
+function addToRoute(lat,lng,nome){
+  route.push({lat,lng,nome});
+}
+
+/* DRAW ROUTE */
+function drawRouteOSRM(){
+
+  if(route.length < 2) return;
+
+  const coords = route.map(p => `${p.lng},${p.lat}`).join(";");
+
+  fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    .then(r => r.json())
+    .then(d => {
+
+      const geo = d.routes[0].geometry;
+
+      if(routeLayer) map.removeLayer(routeLayer);
+
+      routeLayer = L.geoJSON(geo, {
+        style: {color:"red", weight:4}
+      }).addTo(map);
+
+      map.fitBounds(routeLayer.getBounds());
+    });
+}
+
 /* GO */
 function go(lat,lng){
   map.setView([lat,lng], 13);
 }
 
 </script>
-<div id="sidebar">
-  <div id="content"></div>
-</div>
+
 </body>
 </html>
